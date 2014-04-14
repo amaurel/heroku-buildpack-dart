@@ -58,6 +58,8 @@ curl -L $DART_SDK_URL -o - | tar xzf -
 
 message "-----> Copy Dart binaries to app root"
 cp -r $CACHE_DIR/dart-sdk $BUILD_DIR
+message "-----> Copy app to $BUILD_DIR"
+cp -r /app $BUILD_DIR
 
 # we need to copy the sdk into the /app folder in order for the sdk libraries
 # to be referenced correctly
@@ -70,34 +72,4 @@ message "-----> Dart cmd found at $DART_BIN"
 
 CAN_DART_RUN=`/app/dart-sdk/bin/dart --version`
 message "-----> Dart reports version: $CAN_DART_RUN"
-
-cd $BUILD_DIR
-
-for filename in `find . -name pubspec.yaml | grep -v dart-sdk | grep -v pub-cache`; do
-    pub_dir=`dirname $filename`
-    message "*** Found pubspec.yaml in $BUILD_DIR/$pub_dir"
-    cd $BUILD_DIR/$pub_dir
-
-    message "*** Running pub get"
-
-    #start pub from the /app folder to have correct symlink paths
-    /app/dart-sdk/bin/pub get
-
-    message "*** Running pub build"
-
-    if [[ -z "$DART_BUILD_CMD" ]]
-    then
-        message 'Building with "pub build"'
-        /app/dart-sdk/bin/pub build
-    else
-        message "Building with \"$DART_BUILD_CMD\""
-        eval $DART_BUILD_CMD
-    fi
-
-done
-
-# I think heroku deletes all the contents of /app and replaces it with
-# whatever is in $BUILD_DIR, so copy over the pub-cache. Why not put it in
-# $BUILD_DIR in the first place? because we need symlinks setup correctly.
-cp -R $PUB_CACHE $BUILD_DIR/pub-cache
-message `ls -l $BUILD_DIR/pub-cache`
+ 
